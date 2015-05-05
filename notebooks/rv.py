@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 
 ROOTDIR = "";
 
+DPI = 80
+
 class DataFileBase (object):
   def __init__ (self,path,root=""):
     self.fullpath = path
@@ -52,10 +54,12 @@ class FITSFile (DataFileBase):
 
   @staticmethod 
   def _show_thumbs (fits_files,width=None,ncol=None,maxwidth=16,maxcol=4,**kw):
+    if not fits_files:
+      return None
     nrow = int(math.ceil(len(fits_files)/float(ncol or maxcol)))
     ncol = ncol or min(len(fits_files),maxcol)
     width = width or maxwidth/float(ncol)
-    fig = plt.figure(figsize=(width*ncol,width*nrow))
+    fig = plt.figure(figsize=(width*ncol,width*nrow),dpi=DPI)
     for iplot,ff in enumerate(fits_files):
       plt.subplot(nrow,ncol,iplot+1);
       ff.show(index=[0]*10,unroll=None,colorbar=False,filename_in_title=True,make_figure=False,fs_title='small',**kw)
@@ -119,7 +123,7 @@ class FITSFile (DataFileBase):
     if unroll is None:
       # show single image
       if make_figure:
-        plt.figure(figsize=(width or maxwidth,width or maxwidth))
+        plt.figure(figsize=(width or maxwidth,width or maxwidth),dpi=DPI)
       plt.imshow(data[tuple(baseslice)],vmin=vmin,vmax=vmax)
       colorbar and plt.colorbar()
       plt.xlabel(axis_type[xyaxes[0]])
@@ -130,7 +134,7 @@ class FITSFile (DataFileBase):
       nrow = int(math.ceil(dims[unroll]/float(maxcol or ncol)))
       ncol = ncol or min(dims[unroll],maxcol)
       width = width or maxwidth/float(ncol)
-      fig = plt.figure(figsize=(width*ncol,width*nrow))
+      fig = plt.figure(figsize=(width*ncol,width*nrow),dpi=DPI)
       for iplot in range(dims[unroll]):
         plt.subplot(nrow,ncol,iplot+1)
         baseslice[unroll] = iplot
@@ -149,6 +153,15 @@ class ImageFile (DataFileBase):
     for img in images:
       img.show(width=width)
       IPython.display.display(IPython.display.HTML(img.name))
+
+  def _show_thumbs (images,width=None,ncol=None,maxwidth=16,maxcol=4,**kw):
+    nrow = int(math.ceil(len(fits_files)/float(ncol or maxcol)))
+    ncol = ncol or min(len(fits_files),maxcol)
+    width = width or maxwidth/float(ncol)
+    fig = plt.figure(figsize=(width*ncol,width*nrow),dpi=DPI)
+    for iplot,ff in enumerate(fits_files):
+      plt.subplot(nrow,ncol,iplot+1);
+      ff.show(index=[0]*10,unroll=None,colorbar=False,filename_in_title=True,make_figure=False,fs_title='small',**kw)
 
 
   def show (self,width=None):
@@ -242,7 +255,7 @@ class DirList (list):
       self._sort()
 
   def _sort (self):
-    self.sort(cmp=lambda x,y:cmp(x.mtime,y.mtime));
+    self.sort(cmp=lambda x,y:cmp(x.name,y.name));
     dirlist = [];
     for dir_ in self:
       nfits =  len(dir_.fits_files);

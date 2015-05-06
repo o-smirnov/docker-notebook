@@ -6,3 +6,4 @@ libpython2.7-dev
 libzmq-dev
 libpng12-dev
 libfreetype6-dev
+imagemagick

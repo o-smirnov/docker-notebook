@@ -19,10 +19,8 @@ ADD python_packages /
 
 
 # install debian packages
-RUN cat /debian_packages | xargs apt-get -qy install && \
-    apt-get -qy clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
+RUN apt-get -q update && cat /debian_packages | xargs apt-get -qy install && \
+    apt-get -qy clean &&  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # install all python modules
 RUN pip install -r /python_packages && \

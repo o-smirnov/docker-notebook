@@ -9,8 +9,8 @@ from rv.ImageFile import ImageFile
 import matplotlib.pyplot as plt
 
 NOTEBOOK_DIR = os.environ.get('RVNB_NOTEBOOK_DIR', '/notebooks')
-RESULTDIR = os.environ.get('RVNB_DATA_DIR', '/data')
-ORIGINAL_RESULTDIR = os.environ.get('RVNB_ORIGINAL_DIR', 'unknown')
+RESULTDIR = os.environ.get('RVNB_DATA_DIR', '/notebooks/data')
+ORIGINAL_RESULTDIR = os.environ.get('RVNB_ORIGINAL_DIR', '/notebooks/data')
 
 WIDTH = None    # globally fix a plot width (inches)
 MINCOL = 2      # default min # of columns to display in thumbnail view

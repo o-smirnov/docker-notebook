@@ -12,8 +12,10 @@ the github repo is guaranteed to be up-to-date.
 
 To run:
 
+```
 $ cd example-reduction-dir
 $ run-rv-notebook.sh        # from Owlcat, or a version of the script provided here
+```
 
 Point your browser to the indicated port (or forward the port via ssh if
 working remotely), enter the example-reduction-dir directory, and load the

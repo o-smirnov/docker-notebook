@@ -16,7 +16,16 @@ class FileBase (object):
         self.basename, self.ext = os.path.splitext(self.name)
         self.size = os.path.getsize(self.fullpath)
         self.mtime = os.path.getmtime(self.fullpath)
-        self.mtime_str = time.ctime(self.mtime)
+        self.mtime_str = time.strftime(rv.TIMEFORMAT,time.localtime(self.mtime))
+        # human-friendly size
+        if self.size > 0:
+            exponent = min(int(math.log(self.size, 1024)), len(self._unit_list) - 1)
+            quotient = float(self.size) / 1024**exponent
+            unit, num_decimals = self._unit_list[exponent]
+            format_string = '{:.%sf}{}' % (num_decimals)
+            self.size_str = format_string.format(quotient, unit)
+        else:
+            self.size_str = '0'
 
     def __str__(self):
         return self.path
@@ -26,6 +35,10 @@ class FileBase (object):
 
     def show(self, **kw):
         print self.path
+
+    _unit_list = zip(['', 'k', 'M', 'G', 'T', 'P'], [0, 0, 1, 2, 2, 2])
+
+
 
 def DataFile(path, root=""):
     """Creates DataFile object of appropriate type, based on filename extension"""

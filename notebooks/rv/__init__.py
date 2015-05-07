@@ -18,6 +18,8 @@ MAXCOL = 4      # default max # of columns to display in thumbnail view
 MAXWIDTH = 16   # default width of thumbnail view (inches)
 DPI = 80        # screen DPI 
 
+TIMEFORMAT = "%H:%M:%S %b %d"
+
 astropy.log.setLevel('ERROR')
 
 import os, time, math, astropy, pyfits, traceback, fnmatch
@@ -29,8 +31,7 @@ import matplotlib.pyplot as plt
 
 from rv.File import DataFile
 
-def renderTitle (title):
-    return "<h4>%s</h4>"%title;
+from rv.Render import renderTitle,renderTable
 
 class FileList(list):
 
@@ -76,12 +77,21 @@ class FileList(list):
                 df_files,
                 columns=('name', 'size', 'modified')) if df_files else None
 
-    def _repr_html_(self):
-        return renderTitle(self._title) + \
-                (self._df._repr_html_() if self._df is not None else "")
+    def _repr_html_(self,ncol=1):
+        html = renderTitle(self._title)
+        if self._extcol:
+            labels = "name", "ext", "size", "modified"
+            data = [ (df.basename, df.ext, df.size_str, df.mtime_str) for df in self ]
+            links = [ (df.fullpath, df.fullpath, None, None) for df in self ]
+        else:
+            labels = "name", "size", "modified"
+            data = [ (df.basename, df.size_str, df.mtime_str) for df in self ]
+            links = [ (df.fullpath, None, None) for df in self ]
+        html += renderTable(data,labels,links=links,ncol=ncol)
+        return html
 
-    def show(self):
-        return IPython.display.display(self)
+    def show(self,ncol=1):
+        return IPython.display.display(HTML(self._repr_html_(ncol=ncol)))
 
     def show_all(self):
         for f in self:
@@ -136,27 +146,23 @@ class DataDir(object):
                                   extcol=False,
                                   thumbs=ImageFile._show_thumbs,
                                   title="Images, " + self._title)
-        # make DataFrame for display
-        self._df = self.files._df
 
     def sort(self, opt):
         for f in self.files, self.fits, self.images:
             f.sort(opt)
-        self._df = self.files._df
         return self
 
     def show(self):
         return IPython.display.display(self)
 
     def _repr_html_(self):
-        return renderTitle(self._title) + self._df._repr_html_()
+        return renderTitle(self._title) + self.files._repr_html_()
 
 
 class DirList(list):
     def __init__(self, rootfolder=None, pattern="*", scan=True, title=None):
         self._root = rootfolder = rootfolder or RESULTDIR
         self._title = title or ORIGINAL_RESULTDIR
-        self._df = None
         if scan:
             for dir_, _, files in os.walk(rootfolder):
                 basename = os.path.basename(dir_)
@@ -166,23 +172,19 @@ class DirList(list):
 
     def _sort(self):
         self.sort(cmp=lambda x, y: cmp(x.name, y.name))
+
+    def _repr_html_(self):
+        html = renderTitle(self._title)
         dirlist = []
         for dir_ in self:
             nfits = len(dir_.fits)
             nimg = len(dir_.images)
             nother = len(dir_.files) - nfits - nimg
             dirlist.append(
-                (dir_.name, nfits, nimg, nother, time.ctime(dir_.mtime)))
-        if dirlist:
-            self._df = DataFrame(
-                dirlist,
-                columns=("name", "# FITS", "# img", "# others", "modified"))
-        else:
-            self._df = None
-
-    def _repr_html_(self):
-        return renderTitle(self._title) + \
-            (self._df._repr_html_() if self._df is not None else "")
+                (dir_.name, nfits, nimg, nother, time.strftime(TIMEFORMAT,time.localtime(dir_.mtime))))
+        html += renderTable(dirlist, 
+                    labels=("name", "# FITS", "# img", "# others", "modified"))
+        return html
 
     def show(self):
         return IPython.display.display(self)
